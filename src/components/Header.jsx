@@ -1,5 +1,6 @@
 import { useEffect, useRef, useState } from 'react';
 import './Header.css';
+import { loadGoogleMaps } from '../services/googleMaps';
 
 // When the Maps JS API doesn't expose AutocompleteService (rare),
 // we simply disable suggestions rather than attempting a blocked REST call.
