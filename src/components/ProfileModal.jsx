@@ -1,4 +1,4 @@
-import { addToast } from './ToastSystem';
+import { addToast } from '../utils/toast';
 import '../components/ui.css';
 
 export default function ProfileModal({ onClose }) {

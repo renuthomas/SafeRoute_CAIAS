@@ -1,18 +1,21 @@
-import { useState, useCallback } from 'react';
+import { useEffect, useState } from 'react';
+import { setAddToast } from '../utils/toast';
 import './ToastSystem.css';
-
-let _addToast = null;
-export function addToast(opts) { _addToast && _addToast(opts); }
 
 export function ToastSystem() {
   const [toasts, setToasts] = useState([]);
 
-  _addToast = useCallback((opts) => {
-    const id = Date.now() + Math.random();
-    setToasts(prev => [...prev, { id, ...opts }]);
-    setTimeout(() => {
-      setToasts(prev => prev.filter(t => t.id !== id));
-    }, 4200);
+  useEffect(() => {
+    setAddToast((opts) => {
+      const id = Date.now() + Math.random();
+      setToasts((prev) => [...prev, { id, ...opts }]);
+      setTimeout(() => {
+        setToasts((prev) => prev.filter((t) => t.id !== id));
+      }, 4200);
+    });
+
+    // Clean up on unmount
+    return () => setAddToast(() => {});
   }, []);
 
   const dismiss = (id) => setToasts(p => p.filter(t => t.id !== id));

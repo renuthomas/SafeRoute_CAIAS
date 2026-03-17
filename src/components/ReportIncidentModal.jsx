@@ -1,25 +1,71 @@
-import { useState } from 'react';
-import { addToast } from './ToastSystem';
+import { useEffect, useState } from 'react';
+import { addToast } from '../utils/toast';
+import { reportIncident } from '../services/firestore';
 import '../components/ui.css';
 
-export default function ReportIncidentModal({ onClose }) {
+export default function ReportIncidentModal({ onClose, fallbackLocation }) {
   const [type, setType] = useState('');
   const [desc, setDesc] = useState('');
   const [anon, setAnon] = useState(true);
   const [submitted, setSubmitted] = useState(false);
+  const supportsGeolocation = typeof navigator !== 'undefined' && !!navigator.geolocation;
+  const [location, setLocation] = useState(fallbackLocation || null);
+  const [locationStatus, setLocationStatus] = useState(
+    fallbackLocation ? 'fallback' : supportsGeolocation ? 'detecting' : 'unsupported',
+  );
 
-  const submit = (e) => {
+  useEffect(() => {
+    if (!fallbackLocation) return;
+    setLocation(fallbackLocation);
+    setLocationStatus('fallback');
+  }, [fallbackLocation]);
+
+  useEffect(() => {
+    if (!supportsGeolocation) return;
+
+    const watcher = navigator.geolocation.watchPosition(
+      (pos) => {
+        setLocation({ lat: pos.coords.latitude, lng: pos.coords.longitude });
+        setLocationStatus('ready');
+      },
+      (err) => {
+        console.warn('Geolocation error', err);
+        setLocationStatus('failed');
+      },
+      { enableHighAccuracy: true, maximumAge: 30_000, timeout: 10000 },
+    );
+
+    return () => navigator.geolocation.clearWatch(watcher);
+  }, [supportsGeolocation]);
+
+  const submit = async (e) => {
     e.preventDefault();
     if (!type) return;
     setSubmitted(true);
-    setTimeout(() => {
+
+    try {
+      await reportIncident({
+        type,
+        description: desc,
+        anonymous: anon,
+        location,
+      });
+
       addToast({
         type: 'success',
         title: 'Incident Reported!',
         message: 'Your report has been submitted anonymously. Thank you for making SafeRoute safer for everyone. 💙',
       });
       onClose();
-    }, 1800);
+    } catch (error) {
+      console.error('Failed to report incident', error);
+      addToast({
+        type: 'danger',
+        title: 'Report Failed',
+        message: 'We could not submit your report. Please try again.',
+      });
+      setSubmitted(false);
+    }
   };
 
   return (
@@ -82,9 +128,15 @@ export default function ReportIncidentModal({ onClose }) {
 
               <div className="form-group">
                 <label className="form-label">Location</label>
-                <div className="form-input" style={{ cursor: 'not-allowed', color: 'var(--text-muted)', display: 'flex', alignItems: 'center', gap: 6 }}>
+                <div className="form-input" style={{ cursor: 'not-allowed', color: 'var(--text-muted)', display: 'flex', alignItems: 'center', gap: 8 }}>
                   <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0 1 18 0z"/><circle cx="12" cy="10" r="3"/></svg>
-                  Current location (auto-detected)
+                  <span style={{ flex: 1 }}>
+                    {locationStatus === 'detecting' && 'Detecting location...'}
+                    {locationStatus === 'fallback' && location && `Using map center — Lat ${location.lat.toFixed(4)}, Lng ${location.lng.toFixed(4)}`}
+                    {locationStatus === 'ready' && location && `Lat ${location.lat.toFixed(4)}, Lng ${location.lng.toFixed(4)}`}
+                    {locationStatus === 'failed' && 'Location unavailable — report will work without it.'}
+                    {locationStatus === 'unsupported' && 'Geolocation not supported in this browser.'}
+                  </span>
                 </div>
               </div>
 
@@ -101,9 +153,9 @@ export default function ReportIncidentModal({ onClose }) {
 
             <div className="modal-footer">
               <button type="button" className="btn btn-secondary" onClick={onClose}>Cancel</button>
-              <button type="submit" className="btn btn-teal" disabled={!type}>
+              <button type="submit" className="btn btn-teal" disabled={!type || submitted}>
                 <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5"><polyline points="20 6 9 17 4 12"/></svg>
-                Submit Report
+                {submitted ? 'Submitting...' : 'Submit Report'}
               </button>
             </div>
           </form>

@@ -1,5 +1,5 @@
 import { useState } from 'react';
-import { addToast } from './ToastSystem';
+import { addToast } from '../utils/toast';
 import '../components/ui.css';
 
 function Toggle({ label, sub, defaultChecked }) {

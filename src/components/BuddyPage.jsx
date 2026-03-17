@@ -1,4 +1,4 @@
-import { addToast } from './ToastSystem';
+import { addToast } from '../utils/toast';
 import './BuddyPage.css';
 import '../components/ui.css';
 import '../components/modals.css';

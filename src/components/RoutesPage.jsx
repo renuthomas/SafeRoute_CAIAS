@@ -1,44 +1,67 @@
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
 import RouteCard from './RouteCard';
-import { addToast } from './ToastSystem';
+import { addToast } from '../utils/toast';
+import { subscribeToScores } from '../services/firestore';
 import './RoutesPage.css';
 
-const ROUTES = [
+const DEFAULT_ROUTES = [
   {
     id: 1,
     name: 'North Ave',
     distance: 5.2, eta: 14, score: 92, incidents: 0,
     tags: ['Well-lit', 'CCTV', 'Low Traffic', 'Police Patrol'],
+    destination: { lat: 40.7181, lng: -74.0022 },
   },
   {
     id: 2,
     name: 'Eastbrook Path',
     distance: 3.9, eta: 10, score: 81, incidents: 0,
     tags: ['Bike Lane', 'Scenic', 'Well-lit'],
+    destination: { lat: 40.7127, lng: -74.0093 },
   },
   {
     id: 3,
     name: 'Downtown Loop',
     distance: 4.8, eta: 12, score: 68, incidents: 2,
     tags: ['Moderate Traffic', 'Police Patrol'],
+    destination: { lat: 40.7105, lng: -74.0080 },
   },
   {
     id: 4,
     name: 'West Trail',
     distance: 6.1, eta: 18, score: 32, incidents: 4,
     tags: ['Poor Lighting', 'High Incidents', 'AVOID'],
+    destination: { lat: 40.7063, lng: -74.0151 },
   },
 ];
 
 const FILTERS = ['All Routes', 'Safe (75+)', 'Moderate', 'Caution'];
 
-export default function RoutesPage() {
+export default function RoutesPage({ onStartNavigation }) {
+  const [routes, setRoutes] = useState(DEFAULT_ROUTES);
   const [selectedId, setSelectedId] = useState(1);
   const [filter, setFilter] = useState('All Routes');
   const [sort, setSort] = useState('score');
   const [viewMode, setViewMode] = useState('list'); // 'list' or 'map'
 
-  const filtered = ROUTES.filter(r => {
+  useEffect(() => {
+    const unsubscribe = subscribeToScores((scores) => {
+      if (!scores || scores.length === 0) return;
+      setRoutes((prev) => prev.map((route) => {
+        const scoreDoc = scores.find((s) => s.routeId === route.id || String(s.routeId) === String(route.id) || String(s.id) === String(route.id));
+        if (!scoreDoc) return route;
+        return {
+          ...route,
+          score: typeof scoreDoc.value === 'number' ? scoreDoc.value : route.score,
+          incidents: typeof scoreDoc.incidents === 'number' ? scoreDoc.incidents : route.incidents,
+        };
+      }));
+    });
+
+    return () => unsubscribe();
+  }, []);
+
+  const filtered = routes.filter(r => {
     if (filter === 'Safe (75+)') return r.score >= 75;
     if (filter === 'Moderate') return r.score >= 50 && r.score < 75;
     if (filter === 'Caution') return r.score < 50;
@@ -50,7 +73,7 @@ export default function RoutesPage() {
     return 0;
   });
 
-  const selected = ROUTES.find(r => r.id === selectedId);
+  const selected = routes.find(r => r.id === selectedId);
 
   return (
     <div className="routes-page">
@@ -126,7 +149,7 @@ export default function RoutesPage() {
               isSelected={selectedId === r.id}
               onSelect={(id) => {
                 setSelectedId(id);
-                const route = ROUTES.find(x => x.id === id);
+                const route = routes.find(x => x.id === id);
                 if (route) {
                   const info = route.score >= 75 ? 'looking great — well-lit and safe!' : route.score >= 50 ? 'has moderate safety conditions.' : 'has poor safety — consider an alternative.';
                   addToast({ type: route.score >= 75 ? 'success' : route.score >= 50 ? 'warning' : 'danger', title: `${route.name} selected`, message: `${route.name} is ${info}` });
@@ -141,7 +164,17 @@ export default function RoutesPage() {
           <button
             className="btn btn-teal btn-full btn-lg"
             id="start-navigation-btn"
-            onClick={() => addToast({ type: 'success', title: 'Navigation started!', message: `Navigating via ${selected?.name}. Stay safe! 💙` })}
+            onClick={() => {
+              if (selected) {
+                const routeInfo = {
+                  name: selected.name,
+                  destination: selected.destination,
+                  travelMode: 'WALKING',
+                };
+                if (onStartNavigation) onStartNavigation(routeInfo);
+                addToast({ type: 'success', title: 'Navigation started!', message: `Navigating via ${selected.name}. Stay safe! 💙` });
+              }
+            }}
           >
             <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
               <polygon points="3 11 22 2 13 21 11 13 3 11"/>
@@ -153,7 +186,7 @@ export default function RoutesPage() {
 
       {/* ===== Right Panel: Map ===== */}
       <div className={`routes-right ${viewMode === 'map' ? '' : 'mobile-hidden'}`}>
-        <MapPanel selected={selected} allRoutes={ROUTES} />
+        <MapPanel selected={selected} />
       </div>
     </div>
   );
@@ -166,7 +199,7 @@ function getSafetyColor(score) {
   return 'var(--danger)';
 }
 
-function MapPanel({ selected, allRoutes }) {
+function MapPanel({ selected }) {
   const color = selected ? getSafetyColor(selected.score) : 'var(--safe)';
 
   // Incident pins positions

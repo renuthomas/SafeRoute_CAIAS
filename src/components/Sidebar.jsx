@@ -1,4 +1,3 @@
-import { useState } from 'react';
 import '../components/ui.css';
 import './Sidebar.css';
 

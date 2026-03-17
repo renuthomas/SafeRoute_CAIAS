@@ -1,4 +1,4 @@
-import { addToast } from './ToastSystem';
+import { addToast } from '../utils/toast';
 
 const ALERTS_DATA = [
   {

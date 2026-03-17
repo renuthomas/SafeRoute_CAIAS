@@ -1,10 +1,11 @@
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
 import './App.css';
 import './components/ui.css';
 import './components/modals.css';
 import Sidebar from './components/Sidebar';
 import Header from './components/Header';
-import { ToastSystem, addToast } from './components/ToastSystem';
+import { ToastSystem } from './components/ToastSystem';
+import { addToast } from './utils/toast';
 import RoutesPage from './components/RoutesPage';
 import AlertsPage from './components/AlertsPage';
 import BuddyPage from './components/BuddyPage';
@@ -15,24 +16,28 @@ import BuddyShareModal from './components/BuddyShareModal';
 import AlertsModal from './components/AlertsModal';
 import SettingsModal from './components/SettingsModal';
 import ProfileModal from './components/ProfileModal';
+import MapView from './components/MapView';
+import { initFirebaseAuth } from './services/firestore';
 
-function MapPage() {
+const DEFAULT_CENTER = { lat: 40.7128, lng: -74.0060 }; // NYC
+
+function MapPage({ searchQuery, onSearchResult, center, route }) {
   return (
-    <div className="placeholder-page">
-      <div className="ph-content">
-        <div style={{ fontSize: 64 }}>🗺️</div>
-        <h2>Full Map View</h2>
-        <p>Interactive city map with real-time safety overlays coming soon</p>
-        <button className="btn btn-primary" onClick={() => addToast({ type: 'info', message: 'Full map with Google Maps / Mapbox integration is coming in the next update!' })}>
-          Get Notified
-        </button>
-      </div>
+    <div className="map-page" style={{ height: '100%', minHeight: '600px' }}>
+      <MapView searchQuery={searchQuery} onSearchResult={onSearchResult} center={center} route={route} />
     </div>
   );
 }
 
 export default function App() {
   const [activeTab, setActiveTab] = useState('routes');
+  const [searchQuery, setSearchQuery] = useState('');
+  const [mapCenter, setMapCenter] = useState(DEFAULT_CENTER);
+  const [selectedRoute, setSelectedRoute] = useState(null);
+
+  useEffect(() => {
+    initFirebaseAuth();
+  }, []);
 
   // Modals
   const [showReport, setShowReport] = useState(false);
@@ -41,10 +46,42 @@ export default function App() {
   const [showSettings, setShowSettings] = useState(false);
   const [showProfile, setShowProfile] = useState(false);
 
+  const handleSearch = (query) => {
+    setSearchQuery(query);
+    setActiveTab('map');
+  };
+
+  const handleSearchResult = (result) => {
+    if (result?.location) {
+      setMapCenter(result.location);
+    }
+  };
+
+  const handleRouteNavigation = (route) => {
+    setSelectedRoute(route);
+    if (route?.destination) {
+      setMapCenter(route.destination);
+    }
+    setActiveTab('map');
+  };
+
+  const handleAlertSelect = (location) => {
+    if (!location) return;
+    setMapCenter(location);
+    setActiveTab('map');
+  };
+
   const pages = {
-    routes: <RoutesPage />,
-    map: <MapPage />,
-    alerts: <AlertsPage />,
+    routes: <RoutesPage onStartNavigation={handleRouteNavigation} />,
+    map: (
+      <MapPage
+        searchQuery={searchQuery}
+        onSearchResult={handleSearchResult}
+        center={mapCenter}
+        route={selectedRoute}
+      />
+    ),
+    alerts: <AlertsPage onAlertSelect={handleAlertSelect} />,
     buddy: <BuddyPage />,
     history: <AnalyticsPage />,
   };
@@ -75,6 +112,7 @@ export default function App() {
           notifCount={3}
           onBellClick={() => setShowAlerts(true)}
           onProfileClick={() => setShowProfile(true)}
+          onSearch={handleSearch}
         />
         <main className="app-content">
           {pages[activeTab]}
@@ -91,7 +129,7 @@ export default function App() {
       <ToastSystem />
 
       {/* Modals */}
-      {showReport && <ReportIncidentModal onClose={() => setShowReport(false)} />}
+      {showReport && <ReportIncidentModal onClose={() => setShowReport(false)} fallbackLocation={mapCenter} />}
       {showBuddy && <BuddyShareModal onClose={() => setShowBuddy(false)} />}
       {showAlerts && <AlertsModal onClose={() => setShowAlerts(false)} />}
       {showSettings && <SettingsModal onClose={() => setShowSettings(false)} />}
