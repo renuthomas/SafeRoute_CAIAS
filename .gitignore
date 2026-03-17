@@ -1,0 +1,17 @@
+node_modules
+dist
+dist-ssr
+*.local
+.vscode
+.DS_Store
+.gemini
+brain
+*. pen
+.env
+.env.*
+! .env.example
+.system_generated
+temp
+recording_*.webp
+*.png
+*.webp

@@ -1,0 +1,57 @@
+.app-shell {
+  display: flex;
+  height: 100vh;
+  width: 100vw;
+  overflow: hidden;
+  background: var(--bg-app);
+}
+
+.app-main {
+  display: flex;
+  flex-direction: column;
+  flex: 1;
+  min-width: 0;
+  overflow: hidden;
+}
+
+.app-content {
+  flex: 1;
+  overflow: hidden;
+  display: flex;
+  flex-direction: column;
+  padding-bottom: 0;
+}
+
+@media (max-width: 768px) {
+  .app-content {
+    padding-bottom: 72px; /* BottomNav height */
+  }
+}
+
+/* Placeholder Page */
+.placeholder-page {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  height: 100%;
+}
+
+.ph-content {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 14px;
+  text-align: center;
+}
+
+.ph-content h2 {
+  font-size: 22px;
+  font-weight: 700;
+}
+
+.ph-content p {
+  font-size: 14px;
+  color: var(--text-muted);
+  max-width: 320px;
+  line-height: 1.6;
+}

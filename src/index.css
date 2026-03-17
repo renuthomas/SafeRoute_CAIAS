@@ -1,0 +1,158 @@
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800;900&display=swap');
+
+*, *::before, *::after {
+  box-sizing: border-box;
+  margin: 0;
+  padding: 0;
+}
+
+:root {
+  /* === Safety Colors === */
+  --safe: #10b981;
+  --safe-bg: rgba(16, 185, 129, 0.1);
+  --safe-border: rgba(16, 185, 129, 0.25);
+  --safe-glow: rgba(16, 185, 129, 0.35);
+
+  --moderate: #f59e0b;
+  --moderate-bg: rgba(245, 158, 11, 0.1);
+  --moderate-border: rgba(245, 158, 11, 0.25);
+  --moderate-glow: rgba(245, 158, 11, 0.35);
+
+  --danger: #ef4444;
+  --danger-bg: rgba(239, 68, 68, 0.1);
+  --danger-border: rgba(239, 68, 68, 0.25);
+  --danger-glow: rgba(239, 68, 68, 0.35);
+
+  /* === Brand Colors === */
+  --primary: #3b82f6;
+  --primary-bg: rgba(59, 130, 246, 0.1);
+  --primary-border: rgba(59, 130, 246, 0.25);
+  --primary-hover: #2563eb;
+  --cyan: #06b6d4;
+  --cyan-bg: rgba(6, 182, 212, 0.1);
+  --purple: #a78bfa;
+
+  /* === Backgrounds === */
+  --bg-app: #0f172a;
+  --bg-surface: #1e293b;
+  --bg-card: #1e293b;
+  --bg-card-hover: #243448;
+  --bg-elevated: #263348;
+  --bg-input: #1e293b;
+  --bg-overlay: rgba(15, 23, 42, 0.85);
+  --bg-modal: #1e293b;
+  --bg-sidebar: #131c2e;
+  --bg-header: rgba(15, 23, 42, 0.95);
+
+  /* === Text === */
+  --text-primary: #f1f5f9;
+  --text-secondary: #94a3b8;
+  --text-muted: #64748b;
+  --text-link: var(--primary);
+
+  /* === Borders === */
+  --border: rgba(255, 255, 255, 0.06);
+  --border-muted: rgba(255, 255, 255, 0.04);
+  --border-active: rgba(59, 130, 246, 0.5);
+
+  /* === Layout === */
+  --sidebar-width: 280px;
+  --header-height: 64px;
+
+  /* === Radius === */
+  --radius-xs: 4px;
+  --radius-sm: 8px;
+  --radius-md: 12px;
+  --radius-lg: 16px;
+  --radius-xl: 20px;
+  --radius-full: 9999px;
+
+  /* === Shadows === */
+  --shadow-sm: 0 1px 3px rgba(0,0,0,0.3);
+  --shadow-md: 0 4px 16px rgba(0,0,0,0.4);
+  --shadow-lg: 0 8px 32px rgba(0,0,0,0.5);
+  --shadow-xl: 0 20px 60px rgba(0,0,0,0.6);
+
+  /* === Transitions === */
+  --t-fast: 150ms ease;
+  --t-base: 220ms ease;
+  --t-slow: 350ms ease;
+
+  /* Font */
+  --font: 'Inter', -apple-system, 'Segoe UI', sans-serif;
+}
+
+html { scroll-behavior: smooth; }
+
+body {
+  font-family: var(--font);
+  background: var(--bg-app);
+  color: var(--text-primary);
+  min-height: 100vh;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+  overflow: hidden;
+}
+
+#root {
+  display: flex;
+  height: 100vh;
+  overflow: hidden;
+}
+
+/* Scrollbar */
+::-webkit-scrollbar { width: 5px; height: 5px; }
+::-webkit-scrollbar-track { background: transparent; }
+::-webkit-scrollbar-thumb { background: rgba(255,255,255,0.1); border-radius: 3px; }
+::-webkit-scrollbar-thumb:hover { background: rgba(255,255,255,0.18); }
+
+/* Focus */
+:focus-visible { outline: 2px solid var(--primary); outline-offset: 2px; }
+
+/* Selection */
+::selection { background: rgba(59, 130, 246, 0.3); }
+
+/* Global animations */
+@keyframes fadeIn {
+  from { opacity: 0; }
+  to { opacity: 1; }
+}
+@keyframes slideUp {
+  from { opacity: 0; transform: translateY(16px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+@keyframes slideInRight {
+  from { opacity: 0; transform: translateX(20px); }
+  to { opacity: 1; transform: translateX(0); }
+}
+@keyframes scaleIn {
+  from { opacity: 0; transform: scale(0.95); }
+  to { opacity: 1; transform: scale(1); }
+}
+@keyframes pulse {
+  0%, 100% { opacity: 1; transform: scale(1); }
+  50% { opacity: 0.5; transform: scale(0.8); }
+}
+@keyframes growUp {
+  from { height: 0 !important; }
+  to { }
+}
+@keyframes spin {
+  to { transform: rotate(360deg); }
+}
+@keyframes shimmer {
+  0% { background-position: -200% 0; }
+  100% { background-position: 200% 0; }
+}
+
+/* Utility */
+.sr-only { position: absolute; width: 1px; height: 1px; overflow: hidden; clip: rect(0,0,0,0); }
+
+/* Responsive Utils */
+.mobile-only { display: none !important; }
+.desktop-only { display: flex !important; }
+
+@media (max-width: 768px) {
+  .mobile-only { display: flex !important; }
+  .desktop-only { display: none !important; }
+}

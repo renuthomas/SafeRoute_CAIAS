@@ -1,0 +1,166 @@
+.route-card {
+  position: relative;
+  background: var(--bg-card);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-md);
+  padding: 16px;
+  cursor: pointer;
+  transition: all var(--t-base);
+  overflow: hidden;
+  animation: slideUp 0.4s ease both;
+}
+
+@media (max-width: 480px) {
+  .route-card {
+    padding: 12px;
+  }
+  .card-name {
+    font-size: 13px;
+  }
+  .card-score-ring {
+    width: 40px;
+    height: 40px;
+  }
+  .ring-number {
+    font-size: 11px;
+  }
+}
+
+.route-card:hover, .route-card.hovered {
+  background: var(--bg-card-hover);
+  border-color: rgba(255,255,255,0.1);
+  transform: translateY(-2px);
+  box-shadow: var(--shadow-md);
+}
+
+.route-card.selected {
+  border-color: var(--primary);
+  border-width: 2px;
+  background: rgba(59, 130, 246, 0.05);
+  box-shadow: 0 0 0 1px var(--primary-bg);
+}
+
+/* Subtle tint for safe/danger */
+.card-safe { background: rgba(16, 185, 129, 0.03); }
+.card-safe.selected { border-color: var(--safe); background: rgba(16, 185, 129, 0.06); }
+.card-moderate.selected { border-color: var(--moderate); }
+.card-danger.selected { border-color: var(--danger); }
+
+.card-selected-bar {
+  position: absolute;
+  left: 0; top: 0; bottom: 0;
+  width: 3px;
+}
+
+/* Header Row */
+.card-header-row {
+  display: flex;
+  align-items: flex-start;
+  gap: 12px;
+  margin-bottom: 10px;
+}
+
+.card-name-group { flex: 1; min-width: 0; }
+
+.card-name {
+  font-size: 14px;
+  font-weight: 700;
+  color: var(--text-primary);
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+  margin-bottom: 5px;
+}
+
+.safety-badge {
+  display: inline-flex;
+  align-items: center;
+  font-size: 10px;
+  font-weight: 700;
+  padding: 3px 8px;
+  border-radius: var(--radius-full);
+  letter-spacing: 0.5px;
+}
+
+.badge-safe { background: var(--safe-bg); color: var(--safe); border: 1px solid var(--safe-border); }
+.badge-moderate { background: var(--moderate-bg); color: var(--moderate); border: 1px solid var(--moderate-border); }
+.badge-danger { background: var(--danger-bg); color: var(--danger); border: 1px solid var(--danger-border); }
+
+/* Score Ring */
+.card-score-ring {
+  position: relative;
+  width: 46px;
+  height: 46px;
+  flex-shrink: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.card-score-ring svg { position: absolute; top: 0; left: 0; }
+
+.ring-number {
+  font-size: 13px;
+  font-weight: 800;
+  z-index: 1;
+  letter-spacing: -0.5px;
+}
+
+/* Meta */
+.card-meta {
+  display: flex;
+  align-items: center;
+  gap: 5px;
+  font-size: 12px;
+  color: var(--text-secondary);
+  margin-bottom: 10px;
+  flex-wrap: wrap;
+}
+
+.meta-chip {
+  display: inline-flex;
+  align-items: center;
+  gap: 3px;
+}
+
+.meta-chip.incident { color: var(--danger); font-weight: 500; }
+.meta-sep { color: var(--text-muted); }
+
+/* Safety Bar */
+.safety-bar-wrap { margin-bottom: 10px; }
+
+.safety-bar-track {
+  height: 4px;
+  background: rgba(255,255,255,0.05);
+  border-radius: var(--radius-full);
+  overflow: hidden;
+}
+
+.safety-bar-fill {
+  height: 100%;
+  border-radius: var(--radius-full);
+  transition: width 0.8s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+/* Tags */
+.card-tags {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 5px;
+}
+
+.tag {
+  font-size: 11px;
+  font-weight: 500;
+  padding: 3px 8px;
+  border-radius: var(--radius-full);
+  background: var(--bg-elevated);
+  color: var(--text-muted);
+  border: 1px solid var(--border);
+}
+
+.tag-danger {
+  background: var(--danger-bg);
+  color: var(--danger);
+  border-color: var(--danger-border);
+  font-weight: 700;
+}
