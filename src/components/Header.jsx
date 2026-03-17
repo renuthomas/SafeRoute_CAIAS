@@ -105,7 +105,7 @@ export default function Header({ activeTab, notifCount, onBellClick, onProfileCl
       cancelled = true;
       clearTimeout(timeout);
     };
-  }, [query, useRestAutocomplete]);
+  }, [query, useAutocompleteService]);
 
   useEffect(() => {
     const onClickOutside = (event) => {
