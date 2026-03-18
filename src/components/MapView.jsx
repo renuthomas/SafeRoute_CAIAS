@@ -40,8 +40,9 @@ export default function MapView({ center = DEFAULT_CENTER, zoom = 13, searchQuer
 
           geocoderRef.current = new window.google.maps.Geocoder();
 
-          // Prefer the new Routes API when available (avoids deprecation warnings).
-          const hasRoutesApi = Boolean(window.google?.maps?.routes?.Route?.computeRoutes);
+          // Disable Routes API - it returns unexpected response format
+          // Use legacy DirectionsService instead (still works despite deprecation warnings)
+          const hasRoutesApi = false;
           useRoutesApiRef.current = hasRoutesApi;
 
           if (!hasRoutesApi) {
