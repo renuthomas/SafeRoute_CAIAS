@@ -96,7 +96,7 @@ export default function Header({ activeTab, notifCount, onBellClick, onProfileCl
           updateError('No results found');
           return;
         }
-        updatePredictions(preds?.predictions || []);
+        updatePredictions(preds || []);
       });
     };
 
