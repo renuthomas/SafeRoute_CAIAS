@@ -3,7 +3,7 @@ import './BuddyPage.css';
 import '../components/ui.css';
 import '../components/modals.css';
 
-export default function BuddyPage() {
+export default function BuddyPage({ activeSession, onStopSharing, shareLink }) {
   return (
     <div className="buddy-page">
       <div className="buddy-hero">
@@ -15,12 +15,29 @@ export default function BuddyPage() {
           Share your live location with trusted contacts while navigating.<br/>
           Someone always knows where you are.
         </p>
-        <button
-          className="btn btn-teal btn-lg"
-          onClick={() => addToast({ type: 'info', title: 'Buddy Mode', message: 'Click "Start Buddy Share" in the sidebar to activate!' })}
-        >
-          Start Buddy Share
-        </button>
+
+        {activeSession ? (
+          <div style={{ width: '100%', maxWidth: 460, textAlign: 'center' }}>
+            <div className="info-box" style={{ marginBottom: 16 }}>
+              <strong>Sharing with:</strong> {activeSession.contactName || 'Trusted contact'}
+              <br />
+              <strong>Link:</strong> <code style={{ fontSize: 12, wordBreak: 'break-all' }}>{shareLink || activeSession.shareUrl}</code>
+            </div>
+            <button
+              className="btn btn-danger btn-lg"
+              onClick={() => onStopSharing?.()}
+            >
+              Stop Buddy Share
+            </button>
+          </div>
+        ) : (
+          <button
+            className="btn btn-teal btn-lg"
+            onClick={() => addToast({ type: 'info', title: 'Buddy Mode', message: 'Click "Start Buddy Share" in the sidebar to activate!' })}
+          >
+            Start Buddy Share
+          </button>
+        )}
       </div>
 
       <div className="buddy-features">

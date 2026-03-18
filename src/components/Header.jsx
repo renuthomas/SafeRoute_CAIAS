@@ -15,7 +15,6 @@ export default function Header({ activeTab, notifCount, onBellClick, onProfileCl
     map: 'Live Map',
     alerts: 'Safety Alerts',
     buddy: 'Buddy Mode',
-    history: 'History',
   };
 
   const [query, setQuery] = useState('');

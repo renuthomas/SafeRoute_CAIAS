@@ -1,4 +1,4 @@
-import { collection, addDoc, query, orderBy, onSnapshot, serverTimestamp } from 'firebase/firestore';
+import { collection, addDoc, doc, onSnapshot, query, orderBy, serverTimestamp, setDoc, updateDoc } from 'firebase/firestore';
 import { db, auth, signInAnonymously, onAuthStateChanged, isFirebaseConfigured } from '../firebase';
 
 let authInitialized = false;
@@ -89,6 +89,19 @@ export function subscribeToScores(onChange) {
   });
 }
 
+export function subscribeToRoutes(onChange) {
+  if (!isFirebaseConfigured || !db) {
+    console.warn('Unable to subscribe to routes because Firebase is not configured.');
+    return () => {};
+  }
+
+  const q = query(collection(db, 'routes'), orderBy('createdAt', 'desc'));
+  return onSnapshot(q, (snapshot) => {
+    const items = snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
+    onChange(items);
+  });
+}
+
 export function subscribeToAlerts(onChange) {
   if (!isFirebaseConfigured || !db) {
     console.warn('Unable to subscribe to alerts because Firebase is not configured.');
@@ -115,20 +128,52 @@ export function subscribeToBuddyLocations(token, onChange) {
   });
 }
 
+export function subscribeToBuddySession(token, onChange) {
+  if (!token) return () => {};
+  if (!isFirebaseConfigured || !db) {
+    console.warn('Unable to subscribe to buddy session because Firebase is not configured.');
+    return () => {};
+  }
+
+  const docRef = doc(db, 'buddies', token);
+  return onSnapshot(docRef, (snapshot) => {
+    if (!snapshot.exists()) {
+      onChange(null);
+      return;
+    }
+    onChange({ id: snapshot.id, ...snapshot.data() });
+  });
+}
+
 export async function createBuddySession(token, metadata = {}) {
   if (!isFirebaseConfigured || !db) {
     console.warn('Unable to create buddy session because Firebase is not configured.');
     return null;
   }
 
-  const buddyRef = collection(db, 'buddies');
-  const doc = await addDoc(buddyRef, {
+  const docRef = doc(db, 'buddies', token);
+  await setDoc(docRef, {
     token,
+    active: true,
     createdAt: serverTimestamp(),
     expiresAt: null,
     ...metadata,
   });
-  return doc.id;
+  return token;
+}
+
+export async function endBuddySession(token) {
+  if (!token) return;
+  if (!isFirebaseConfigured || !db) {
+    console.warn('Unable to end buddy session because Firebase is not configured.');
+    return;
+  }
+
+  const docRef = doc(db, 'buddies', token);
+  await updateDoc(docRef, {
+    active: false,
+    endedAt: serverTimestamp(),
+  });
 }
 
 export async function addBuddyLocation(token, { lat, lng }) {

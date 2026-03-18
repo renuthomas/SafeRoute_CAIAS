@@ -1,45 +1,10 @@
 import { addToast } from '../utils/toast';
 
-const ALERTS_DATA = [
-  {
-    id: 1,
-    icon: '🚨',
-    title: 'Downtown Loop — 2 incidents in last 2 hours',
-    time: '12 minutes ago',
-    desc: 'Multiple reports of aggressive behavior near the intersection.',
-    action: 'View Route',
-    actionType: 'danger',
-  },
-  {
-    id: 2,
-    icon: '✨',
-    title: 'Better route available',
-    time: '5 minutes ago',
-    desc: 'North Ave now has excellent conditions (92/100). Consider switching from West Trail (32/100).',
-    action: 'Switch Route',
-    actionType: 'success',
-  },
-  {
-    id: 3,
-    icon: '💡',
-    title: 'Poor lighting detected',
-    time: 'Just now',
-    desc: 'West Trail segment (6.1–6.3 mi) has inadequate lighting. Avoid after sunset.',
-    action: 'Avoid Segment',
-    actionType: 'warning',
-  },
-];
+const ALERTS_DATA = [];
 
 export default function AlertsModal({ onClose }) {
   const handleAction = (alert) => {
-    const msgs = {
-      'View Route': { type: 'info', message: `Highlighting Downtown Loop on the map.` },
-      'Switch Route': { type: 'success', message: `Switched to North Ave — looking great! 🌟` },
-      'Avoid Segment': { type: 'warning', message: `West Trail segment (6.1–6.3 mi) marked to avoid.` },
-    };
-    const m = msgs[alert.action];
-    if (m) addToast({ type: m.type, title: alert.action, message: m.message });
-    onClose();
+    addToast({ type: alert.actionType, title: alert.title, message: alert.desc }); 
   };
 
   return (

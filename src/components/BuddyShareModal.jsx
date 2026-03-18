@@ -14,29 +14,53 @@ const SHARING_OPTIONS = [
 ];
 
 const DURATION_OPTIONS = [
+  '15 minutes',
+  '30 minutes',
+  '1 hour',
   'Until I arrive',
   '4 hours',
   'Continuous',
 ];
 
-export default function BuddyShareModal({ onClose }) {
-  const [selectedContact, setSelectedContact] = useState(null);
+export default function BuddyShareModal({ onClose, onActivate, onStop, activeSession, currentRoute }) {
+  const [selectedContact, setSelectedContact] = useState(activeSession?.contact?.id ?? null);
   const [sharingMode, setSharingMode] = useState('live');
   const [duration, setDuration] = useState('Until I arrive');
-  const [activated, setActivated] = useState(false);
+  const [activated, setActivated] = useState(Boolean(activeSession));
+  const [shareUrl, setShareUrl] = useState(activeSession?.shareUrl || '');
 
-  const activate = () => {
+  const activate = async () => {
     if (!selectedContact) return;
     setActivated(true);
-    setTimeout(() => {
-      const contact = CONTACTS.find(c => c.id === selectedContact);
-      addToast({
-        type: 'success',
-        title: 'Buddy Share Activated!',
-        message: `🎯 ${contact.name} will receive a notification and can track your live location. You can stop sharing anytime.`,
-      });
-      onClose();
-    }, 1800);
+
+    const contact = CONTACTS.find(c => c.id === selectedContact);
+    const result = await onActivate?.({
+      contact,
+      sharingMode,
+      duration,
+      route: currentRoute,
+    });
+
+    if (result?.shareUrl) {
+      setShareUrl(result.shareUrl);
+    }
+
+    addToast({
+      type: 'success',
+      title: 'Buddy Share Activated!',
+      message: `🎯 ${contact.name} will receive a notification and can track your live location. You can stop sharing anytime.`,
+    });
+  };
+
+  const copyLink = async () => {
+    if (!shareUrl) return;
+    try {
+      await navigator.clipboard.writeText(shareUrl);
+      addToast({ type: 'success', title: 'Link copied!', message: 'Share the link with your trusted contact.' });
+    } catch (err) {
+      console.warn('Copy failed', err);
+      addToast({ type: 'warning', title: 'Copy failed', message: 'Could not copy link. Please copy it manually.' });
+    }
   };
 
   return (
@@ -56,9 +80,29 @@ export default function BuddyShareModal({ onClose }) {
           <div className="modal-body" style={{ textAlign: 'center', padding: '32px 24px 40px' }}>
             <div style={{ fontSize: 48, marginBottom: 16 }}>🎯</div>
             <div style={{ fontSize: 16, fontWeight: 700, color: 'var(--safe)', marginBottom: 8 }}>Buddy Share Activated!</div>
-            <div style={{ fontSize: 13, color: 'var(--text-secondary)', lineHeight: 1.6 }}>
-              {CONTACTS.find(c => c.id === selectedContact)?.name} will receive a notification and can track your live location.
-              <br/><strong>Stay safe! You can stop sharing anytime.</strong>
+            <div style={{ fontSize: 13, color: 'var(--text-secondary)', lineHeight: 1.6, marginBottom: 18 }}>
+              {activeSession?.contactName || CONTACTS.find(c => c.id === selectedContact)?.name || 'Your buddy'} is now tracking your route. Share the link below so they can view your live position.
+            </div>
+
+            <div className="info-box" style={{ marginBottom: 16, padding: '12px 14px' }}>
+              <div style={{ fontSize: 12, color: 'var(--text-muted)', marginBottom: 6 }}>Share this link with your buddy:</div>
+              <div className="copy-link" style={{ display: 'flex', gap: 8, alignItems: 'center' }}>
+                <input
+                  value={shareUrl}
+                  readOnly
+                  className="form-input"
+                  style={{ flex: 1, fontSize: 12, padding: '10px 12px', borderRadius: '10px' }}
+                />
+                <button className="btn btn-secondary" onClick={copyLink} style={{ padding: '10px 14px' }}>
+                  Copy
+                </button>
+              </div>
+            </div>
+
+            <div className="modal-footer" style={{ justifyContent: 'center' }}>
+              <button className="btn btn-danger" onClick={() => { onStop?.(); onClose(); }}>
+                Stop Sharing
+              </button>
             </div>
           </div>
         ) : (

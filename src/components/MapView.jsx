@@ -5,7 +5,7 @@ import './MapView.css';
 
 const DEFAULT_CENTER = { lat: 40.7128, lng: -74.0060 }; // Default to NYC
 
-export default function MapView({ center = DEFAULT_CENTER, zoom = 13, searchQuery = '', onSearchResult, route = null }) {
+export default function MapView({ center = DEFAULT_CENTER, zoom = 13, searchQuery = '', onSearchResult, route = null, buddyLocations = [], buddyLabel, markerLocation = null, markerLabel = '' }) {
   const apiKey = import.meta.env.VITE_GOOGLE_MAPS_API_KEY;
   const mapRef = useRef(null);
   const mapInstance = useRef(null);
@@ -18,7 +18,10 @@ export default function MapView({ center = DEFAULT_CENTER, zoom = 13, searchQuer
   const heatmapRef = useRef(null);
   const routePolylineRef = useRef(null);
   const routeMarkersRef = useRef([]);
+  const buddyPathRef = useRef(null);
+  const buddyMarkerRef = useRef(null);
   const searchMarkerRef = useRef(null);
+  const customMarkerRef = useRef(null);
   const geocoderRef = useRef(null);
   const directionsServiceRef = useRef(null);
   const directionsRendererRef = useRef(null);
@@ -134,7 +137,106 @@ export default function MapView({ center = DEFAULT_CENTER, zoom = 13, searchQuer
 
   useEffect(() => {
     if (status !== 'ready' || !mapInstance.current) return;
-    if (!route) {
+
+    if (!markerLocation || markerLocation.lat == null || markerLocation.lng == null) {
+      if (customMarkerRef.current) {
+        customMarkerRef.current.setMap(null);
+        customMarkerRef.current = null;
+      }
+      return;
+    }
+
+    const position = { lat: markerLocation.lat, lng: markerLocation.lng };
+
+    if (customMarkerRef.current) {
+      customMarkerRef.current.setPosition(position);
+    } else {
+      customMarkerRef.current = new window.google.maps.Marker({
+        map: mapInstance.current,
+        position,
+        title: markerLabel || 'Point',
+        icon: {
+          path: window.google.maps.SymbolPath.CIRCLE,
+          fillColor: '#10b981',
+          fillOpacity: 0.9,
+          strokeWeight: 0,
+          scale: 10,
+        },
+      });
+    }
+
+    mapInstance.current.panTo(position);
+    mapInstance.current.setZoom(14);
+  }, [status, markerLocation, markerLabel]);
+
+  useEffect(() => {
+    if (status !== 'ready' || !mapInstance.current) return;
+    if (!buddyLocations || buddyLocations.length === 0) {
+      if (buddyPathRef.current) {
+        buddyPathRef.current.setMap(null);
+        buddyPathRef.current = null;
+      }
+      if (buddyMarkerRef.current) {
+        buddyMarkerRef.current.setMap(null);
+        buddyMarkerRef.current = null;
+      }
+      return;
+    }
+
+    const path = buddyLocations
+      .filter(l => l?.lat != null && l?.lng != null)
+      .map((l) => ({ lat: l.lat, lng: l.lng }));
+
+    if (path.length === 0) return;
+
+    if (buddyPathRef.current) {
+      buddyPathRef.current.setPath(path);
+    } else {
+      buddyPathRef.current = new window.google.maps.Polyline({
+        path,
+        strokeColor: '#facc15',
+        strokeOpacity: 0.9,
+        strokeWeight: 6,
+        map: mapInstance.current,
+      });
+    }
+
+    const last = path[path.length - 1];
+    if (buddyMarkerRef.current) {
+      buddyMarkerRef.current.setPosition(last);
+    } else {
+      buddyMarkerRef.current = new window.google.maps.Marker({
+        position: last,
+        map: mapInstance.current,
+        title: buddyLabel || 'Buddy',
+        icon: {
+          path: window.google.maps.SymbolPath.CIRCLE,
+          fillColor: '#facc15',
+          fillOpacity: 0.95,
+          strokeWeight: 0,
+          scale: 9,
+        },
+        label: {
+          text: buddyLabel ? buddyLabel.slice(0, 2).toUpperCase() : 'B',
+          color: '#0f172a',
+          fontSize: '12px',
+          fontWeight: '700',
+        },
+      });
+    }
+
+    const bounds = new window.google.maps.LatLngBounds();
+    path.forEach((p) => bounds.extend(p));
+    if (route?.destination?.lat != null && route?.destination?.lng != null) {
+      bounds.extend(route.destination);
+    }
+    if (!bounds.isEmpty()) {
+      mapInstance.current.fitBounds(bounds, 100);
+    }
+  }, [status, buddyLocations, buddyLabel, route]);
+
+  useEffect(() => {
+    if (status !== 'ready' || !mapInstance.current) return;    if (!route) {
       // Clear any existing route overlay when route is removed.
       if (routePolylineRef.current) {
         routePolylineRef.current.setMap(null);

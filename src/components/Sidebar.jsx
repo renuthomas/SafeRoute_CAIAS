@@ -4,9 +4,8 @@ import './Sidebar.css';
 const navItems = [
   { id: 'routes', emoji: '📍', label: 'Routes' },
   { id: 'map', emoji: '🗺️', label: 'Live Map' },
-  { id: 'alerts', emoji: '🔔', label: 'Alerts', badge: 3 },
+  { id: 'alerts', emoji: '🔔', label: 'Alerts' },
   { id: 'buddy', emoji: '👥', label: 'Buddy Mode' },
-  { id: 'history', emoji: '📊', label: 'History' },
 ];
 
 export default function Sidebar({ activeTab, onTabChange, onReportIncident, onBuddyShare, onSettings }) {
