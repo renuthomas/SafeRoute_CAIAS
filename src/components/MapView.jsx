@@ -220,7 +220,11 @@ export default function MapView({ center = DEFAULT_CENTER, zoom = 13, searchQuer
         destination,
         travelMode: window.google?.maps?.TravelMode?.[travelMode] ?? window.google.maps.TravelMode.WALKING,
         // Required: specify which fields to return from the Routes API
-        fields: ['overviewPolyline', 'bounds', 'duration', 'distanceMeters', 'legs'],
+        fields: ['path', 
+    'viewport', 
+    'durationMillis', 
+    'distanceMeters', 
+    'legs'],
       };
 
       window.google.maps.routes.Route.computeRoutes(computeRequest)
@@ -231,12 +235,13 @@ export default function MapView({ center = DEFAULT_CENTER, zoom = 13, searchQuer
             return;
           }
 
-          const bounds = routeResult?.bounds ? new window.google.maps.LatLngBounds(
-            new window.google.maps.LatLng(routeResult.bounds.southwest),
-            new window.google.maps.LatLng(routeResult.bounds.northeast),
-          ) : null;
-
-          const path = buildPathFromOverview(routeResult.overviewPolyline || routeResult.polyline);
+          const bounds = routeResult.viewport ? new window.google.maps.LatLngBounds(
+      routeResult.viewport.low, // {lat, lng}
+      routeResult.viewport.high  // {lat, lng}
+    ) : null;
+          
+          const encodedPath = routeResult.polyline?.encodedPolyline;
+          const path = buildPathFromOverview(encodedPath ||routeResult.overviewPolyline || routeResult.polyline);
           if (path.length) {
             drawRoute(path, bounds);
 
