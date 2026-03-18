@@ -219,6 +219,8 @@ export default function MapView({ center = DEFAULT_CENTER, zoom = 13, searchQuer
         origin,
         destination,
         travelMode: window.google?.maps?.TravelMode?.[travelMode] ?? window.google.maps.TravelMode.WALKING,
+        // Required: specify which fields to return from the Routes API
+        fields: ['routes.legs', 'routes.overviewPolyline', 'routes.bounds', 'routes.duration', 'routes.distanceMeters'],
       };
 
       window.google.maps.routes.Route.computeRoutes(computeRequest)
