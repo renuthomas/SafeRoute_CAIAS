@@ -1,4 +1,4 @@
-import { useEffect, useState } from 'react';
+import { useEffect, useState, useCallback, useRef } from 'react';
 import './App.css';
 import './components/ui.css';
 import './components/modals.css';
@@ -54,6 +54,8 @@ export default function App() {
   const [activeTab, setActiveTab] = useState('routes');
   const [searchQuery, setSearchQuery] = useState('');
   const [mapCenter, setMapCenter] = useState(DEFAULT_CENTER);
+  const mapCenterRef = useRef(mapCenter);
+  mapCenterRef.current = mapCenter;
   const [selectedRoute, setSelectedRoute] = useState(null);
 
   useEffect(() => {
@@ -67,12 +69,12 @@ export default function App() {
   const [showSettings, setShowSettings] = useState(false);
   const [showProfile, setShowProfile] = useState(false);
 
-  const handleSearch = (query) => {
+  const handleSearch = useCallback((query) => {
     setSearchQuery(query);
     setActiveTab('map');
-  };
+  }, []);
 
-  const handleSearchResult = async (result) => {
+  const handleSearchResult = useCallback(async (result) => {
     if (result?.location) {
       setMapCenter(result.location);
 
@@ -94,7 +96,7 @@ export default function App() {
         console.warn('Failed to get user location:', error);
         // Fallback: create route from map center to destination
         const route = {
-          origin: mapCenter,
+          origin: mapCenterRef.current,
           destination: result.location,
           travelMode: 'WALKING',
         };
@@ -106,7 +108,7 @@ export default function App() {
         });
       }
     }
-  };
+  }, []);
 
   const handleRouteNavigation = (route) => {
     setSelectedRoute(route);
