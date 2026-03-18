@@ -85,7 +85,7 @@ export default function MapView({ center = DEFAULT_CENTER, zoom = 13, searchQuer
       }
 
       try {
-        const results = await geocoderRef.current.geocode({ address: query });
+        const { results } = await geocoderRef.current.geocode({ address: query });
         const first = results?.[0];
         if (!first?.geometry?.location) {
           setSearchStatus('no-results');
