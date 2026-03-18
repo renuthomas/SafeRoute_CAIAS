@@ -29,6 +29,27 @@ function MapPage({ searchQuery, onSearchResult, center, route }) {
   );
 }
 
+function getUserLocation() {
+  return new Promise((resolve, reject) => {
+    if (!navigator.geolocation) {
+      reject(new Error('Geolocation is not supported'));
+      return;
+    }
+    navigator.geolocation.getCurrentPosition(
+      (position) => {
+        resolve({
+          lat: position.coords.latitude,
+          lng: position.coords.longitude,
+        });
+      },
+      (error) => {
+        reject(error);
+      },
+      { enableHighAccuracy: true, timeout: 10000, maximumAge: 60000 }
+    );
+  });
+}
+
 export default function App() {
   const [activeTab, setActiveTab] = useState('routes');
   const [searchQuery, setSearchQuery] = useState('');
@@ -51,9 +72,39 @@ export default function App() {
     setActiveTab('map');
   };
 
-  const handleSearchResult = (result) => {
+  const handleSearchResult = async (result) => {
     if (result?.location) {
       setMapCenter(result.location);
+
+      // Get user's current location and create a route to the destination
+      try {
+        const location = await getUserLocation();
+        const route = {
+          origin: location,
+          destination: result.location,
+          travelMode: 'WALKING',
+        };
+        setSelectedRoute(route);
+        addToast({
+          type: 'success',
+          title: 'Route calculated',
+          message: 'Showing route from your location to destination with safety information.',
+        });
+      } catch (error) {
+        console.warn('Failed to get user location:', error);
+        // Fallback: create route from map center to destination
+        const route = {
+          origin: mapCenter,
+          destination: result.location,
+          travelMode: 'WALKING',
+        };
+        setSelectedRoute(route);
+        addToast({
+          type: 'warning',
+          title: 'Location unavailable',
+          message: 'Using map center as starting point. Enable location access for accurate routing.',
+        });
+      }
     }
   };
 
